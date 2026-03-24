@@ -14,22 +14,39 @@ jobs:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          DATA=$(curl -s "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true")
-          PRICE=$(echo $DATA | python3 -c "import sys,json; d=json.load(sys.stdin)['bitcoin']; print(f\"{d['usd']:,.2f}\")")
-          CHANGE=$(echo $DATA | python3 -c "import sys,json; d=json.load(sys.stdin)['bitcoin']; c=d['usd_24h_change']; print(f\"{'+'if c>0 else ''}{c:.2f}%\")")
-          VOL=$(echo $DATA | python3 -c "import sys,json; d=json.load(sys.stdin)['bitcoin']; print(f\"{d['usd_24h_vol']/1e9:.1f}B\")")
-          MCAP=$(echo $DATA | python3 -c "import sys,json; d=json.load(sys.stdin)['bitcoin']; print(f\"{d['usd_market_cap']/1e12:.2f}T\")")
+          DATA=$(curl -s "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true")
+
+          BTC_PRICE=$(echo $DATA | python3 -c "import sys,json; d=json.load(sys.stdin)['bitcoin']; print(f\"{d['usd']:,.2f}\")")
+          BTC_CHANGE=$(echo $DATA | python3 -c "import sys,json; d=json.load(sys.stdin)['bitcoin']; c=d['usd_24h_change']; print(f\"{'+'if c>0 else ''}{c:.2f}%\")")
+
+          ETH_PRICE=$(echo $DATA | python3 -c "import sys,json; d=json.load(sys.stdin)['ethereum']; print(f\"{d['usd']:,.2f}\")")
+          ETH_CHANGE=$(echo $DATA | python3 -c "import sys,json; d=json.load(sys.stdin)['ethereum']; c=d['usd_24h_change']; print(f\"{'+'if c>0 else ''}{c:.2f}%\")")
+
+          SOL_PRICE=$(echo $DATA | python3 -c "import sys,json; d=json.load(sys.stdin)['solana']; print(f\"{d['usd']:,.2f}\")")
+          SOL_CHANGE=$(echo $DATA | python3 -c "import sys,json; d=json.load(sys.stdin)['solana']; c=d['usd_24h_change']; print(f\"{'+'if c>0 else ''}{c:.2f}%\")")
+
           DATE=$(date -u '+%d %B %Y')
-          MSG="🔸 *Gunluk Bitcoin Raporu*
+          MSG="🔸 *Gunluk Kripto Raporu*
           📅 ${DATE} — 06:00 GMT
 
-          💰 *BTC/USD:* \$${PRICE}
-          📈 *24s Degisim:* ${CHANGE}
-          📊 *24s Hacim:* \$${VOL}
-          🏆 *Piyasa Degeri:* \$${MCAP}
+          ₿ *BTC/USD:* \$${BTC_PRICE}  ${BTC_CHANGE}
+          Ξ *ETH/USD:* \$${ETH_PRICE}  ${ETH_CHANGE}
+          ◎ *SOL/USD:* \$${SOL_PRICE}  ${SOL_CHANGE}
 
           _kaynak: CoinGecko_"
           curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
             -d chat_id="${CHAT_ID}" \
             -d text="${MSG}" \
             -d parse_mode="Markdown"
+```
+
+Değişiklikleri kaydedince **Actions → Run workflow** ile test et, mesaj şöyle görünecek:
+```
+🔸 Gunluk Kripto Raporu
+📅 24 March 2026 — 06:00 GMT
+
+₿ BTC/USD: $70,868.00  +3.84%
+Ξ ETH/USD: $3,512.00  +1.20%
+◎ SOL/USD: $142.50  -0.75%
+
+kaynak: CoinGecko
